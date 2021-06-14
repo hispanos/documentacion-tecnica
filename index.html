@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Documentación Técnica - Fetch</title>
+</head>
+<body>
+
+    <nav id="navbar">
+        <header>Fetch</header>
+        <a class="nav-link" href="#installing">Instalación</a>
+        <a class="nav-link" href="#loading">Carga y configuración del módulo</a>
+        <a class="nav-link" href="#common">Uso común</a>
+        <a class="nav-link" href="#advanced">Uso Avanzado</a>
+        <a class="nav-link" href="#api">API</a>
+    </nav>
+
+    <main id="main-doc">
+        <section id="installing" class="main-section">
+            <header>Instalación</header>
+            <div>
+                <p>Versión actual (2.x) Ejecute en consola:</p>
+                <pre>
+                    <code class="nohighlight">$ npm install node-fetch</code>
+                </pre>
+            </div>  
+        </section>
+    <hr>
+        <section id="loading" class="main-section">
+            <header>Carga y configuración del módulo</header>
+            <div>
+                <h3>Características</h3>
+                <ul>
+                    <li>Mantenga la coherencia con la window.fetchAPI.</li>
+                    <li>Haga una compensación consciente cuando siga las especificaciones de obtención de WHATWG y los detalles de implementación de las especificaciones de flujo , documente las diferencias conocidas.
+                    </li>
+                </ul>
+                <p>Le sugerimos que cargue el módulo a través de requirehasta la estabilización de los módulos ES en el nodo:
+                </p>
+                <pre>
+                    <code>const fetch = require('node-fetch');</code>
+                </pre>
+                <p>Si está utilizando una biblioteca de Promise que no sea nativa, configúrela a través de fetch.Promise:
+                </p>
+                <pre>
+                    <code>const Bluebird = require('bluebird');
+    fetch.Promise = Bluebird;</code>
+                </pre>
+            </div>
+        </section>
+    <hr>
+        <section id="common" class="main-section">
+            <header>Uso común</header>
+            <div>
+            <p>NOTA: La siguiente documentación está actualizada con las 2.xversiones; consulte el 1.xarchivo Léame , el registro de cambios y la guía de actualización 2.x para conocer las diferencias.</p>
+            <h3>Texto sin formato o HTML</h3>
+            <pre>
+                <code class="nohighlight">fetch('https://github.com/')
+        .then(res => res.text())
+        .then(body => console.log(body));
+        </code>
+            </pre>
+            <h3>JSON</h3>
+            <pre>
+                <code class="nohighlight">fetch('https://api.github.com/users/github')
+        .then(res => res.json())
+        .then(json => console.log(json));
+        </code>
+            </pre>
+            <h3>Simple Post</h3>
+            <pre>
+                <code class="nohighlight">fetch('https://httpbin.org/post', { method: 'POST', body: 'a=1' })
+        .then(res => res.json()) // expecting a json response
+        .then(json => console.log(json));
+        </code>
+            </pre>
+            <h3>Post with JSON</h3>
+            <pre>
+                <code class="nohighlight">const body = { a: 1 };
+
+        fetch('https://httpbin.org/post', {
+                method: 'post',
+                body:    JSON.stringify(body),
+                headers: { 'Content-Type': 'application/json' },
+            })
+            .then(res => res.json())
+            .then(json => console.log(json));
+        </code>
+            </pre>
+        </section>
+    <hr>
+        <section id="advanced" class="main-section">
+            <header>
+            Uso avanzado
+            </header>
+            <div>
+                <h3>Streams</h3>
+            <p>La "forma de Node.js" es usar transmisiones cuando sea posible:
+            </p>
+            <pre>
+                <code>fetch('https://assets-cdn.github.com/images/modules/logos_page/Octocat.png')
+        .then(res => {
+            const dest = fs.createWriteStream('./octocat.png');
+            res.body.pipe(dest);
+        });
+                </code>
+            </pre>
+            <h3>Buffer</h3>
+            <p>Si prefiere almacenar en caché los datos binarios en su totalidad, use buffer (). (NOTA: buffer()es solo una node-fetchAPI)
+            </p>
+            <pre>
+                <code>const fileType = require('file-type');
+
+        fetch('https://assets-cdn.github.com/images/modules/logos_page/Octocat.png')
+            .then(res => res.buffer())
+            .then(buffer => fileType(buffer))
+            .then(type => { /* ... */ });
+        </code>
+            </pre>
+            </div>
+        </section>
+        <hr>
+        <section id="api" class="main-section">
+            <header>API</header>
+            <div>
+                <h3>fetch(url[, options])</h3>
+                <ul>
+                    <li>url A string representing the URL for fetching</li>
+                    <li>options Options for the HTTP(S) request</li>
+                    <li>Returns: Promise<Response></Response></li>
+                </ul>
+                <p>Realice una búsqueda HTTP (S).
+                </p>
+                <p>
+                    urldebe ser una URL absoluta, como https://example.com/. Una URL relativa a la ruta ( /file/under/root) o una URL relativa al protocolo ( //can-be-http-or-https.com/) resultará en un rechazo Promise.
+                </p>
+                <p>Encabezados:</p>
+                <p>Si no se establecen valores, los siguientes encabezados de solicitud se enviarán automáticamente:
+                </p>
+                <pre>
+                    <code class="nohighlight">{
+        // These properties are part of the Fetch Standard
+        method: 'GET',
+        headers: {},        // request headers. format is the identical to that accepted by the Headers constructor (see below)
+        body: null,         // request body. can be null, a string, a Buffer, a Blob, or a Node.js Readable stream
+        redirect: 'follow', // set to `manual` to extract redirect headers, `error` to reject redirect
+        signal: null,       // pass an instance of AbortSignal to optionally abort requests
+        
+        // The following properties are node-fetch extensions
+        follow: 20,         // maximum redirect count. 0 to not follow redirect
+        timeout: 0,         // req/res timeout in ms, it resets on redirect. 0 to disable (OS limit applies). Signal is recommended instead.
+        compress: true,     // support gzip/deflate content encoding. false to disable
+        size: 0,            // maximum response body size in bytes. 0 to disable
+        agent: null         // http(s).Agent instance or function that returns an instance (see below)
+    }</code>
+                </pre>
+            </div>  
+        </section>
+    </main>
+
+</body>
+</html>
